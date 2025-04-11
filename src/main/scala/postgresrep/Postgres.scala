@@ -1,14 +1,16 @@
 package postgresrep
 
 import com.typesafe.config.Config
-import org.postgresql.{PGConnection, PGProperty}
+import org.postgresql.PGProperty
+import org.postgresql.jdbc.PgConnection
+import org.postgresql.replication.ReplicationSlotInfo
 
 import java.sql.DriverManager
 import java.util.Properties
 
-object Postgres:
+class Postgres(config: Config):
 
-  def getConnection(config: Config): PGConnection =
+  def createConnection(): PgConnection =
 
     val url      = config.getString("url")
     val user     = config.getString("user")
@@ -24,8 +26,20 @@ object Postgres:
     PGProperty.PASSWORD.set(props, password)
 
     val con = DriverManager.getConnection(url, props)
-    con.unwrap(classOf[PGConnection])
+    con.unwrap(classOf[PgConnection])
 
-  end getConnection
+  end createConnection
+
+  def createReplicationSlot(conn: PgConnection): ReplicationSlotInfo =
+    val replicationSlot = config.getString("replication-slot")
+
+    conn.getReplicationAPI
+      .createReplicationSlot()
+      .logical()
+      .withSlotName(replicationSlot)
+      .withOutputPlugin("pgoutput")
+      .make()
+
+  end createReplicationSlot
 
 end Postgres
