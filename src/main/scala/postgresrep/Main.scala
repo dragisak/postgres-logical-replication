@@ -23,15 +23,19 @@ object Main extends App:
   Using.resource(pg.createConnection()): conn =>
     val replicationSlot = pg.createReplicationSlot(conn)
     Using.resource(pg.createStream(conn)): stream =>
-      val (stop, f) = start(stream)
-      sys.addShutdownHook(stop.set(true))
+      val (s, f) = start(stream)
       f.onComplete(_ => pg.dropReplicationSlot(conn, replicationSlot))
-      Await.result(f, Duration.Inf)
+      sys.runtime.addShutdownHook(new Thread {
+        override def run(): Unit =
+          logger.info("Shutting down application...")
+          s.set(true)
+      })
+      Await.ready(f, Duration.Inf)
 
   private def start(stream: PGReplicationStream): (AtomicBoolean, Future[Unit]) =
     val stop = new AtomicBoolean(false)
     val f = Future {
-      while true do
+      while !stop.get() do
         val msg = stream.readPending()
 
         if (msg == null) {
