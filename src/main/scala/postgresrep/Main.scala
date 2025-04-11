@@ -2,6 +2,7 @@ package postgresrep
 
 import com.typesafe.config.ConfigFactory
 import org.postgresql.replication.PGReplicationStream
+import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -12,6 +13,8 @@ import scala.util.Using
 import scala.util.Using.Releasable
 
 object Main extends App:
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   private val config = ConfigFactory.load()
 
@@ -38,7 +41,7 @@ object Main extends App:
         val offset = msg.arrayOffset()
         val source = msg.array()
         val length = source.length - offset
-        println(s"$source, $offset, $length")
+        logger.info(s"$source, $offset, $length")
 
         // feedback
         stream.setAppliedLSN(stream.getLastReceiveLSN)
