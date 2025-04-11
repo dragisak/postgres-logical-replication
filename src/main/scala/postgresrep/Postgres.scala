@@ -3,7 +3,7 @@ package postgresrep
 import com.typesafe.config.Config
 import org.postgresql.PGProperty
 import org.postgresql.jdbc.PgConnection
-import org.postgresql.replication.ReplicationSlotInfo
+import org.postgresql.replication.{PGReplicationStream, ReplicationSlotInfo}
 
 import java.sql.DriverManager
 import java.util.Properties
@@ -32,14 +32,35 @@ class Postgres(config: Config):
 
   def createReplicationSlot(conn: PgConnection): ReplicationSlotInfo =
     val replicationSlot = config.getString("replication-slot")
-
-    conn.getReplicationAPI
+    val publication     = config.getString("publication")
+    val slot = conn.getReplicationAPI
       .createReplicationSlot()
       .logical()
       .withSlotName(replicationSlot)
       .withOutputPlugin("pgoutput")
       .make()
 
+    conn.execSQLUpdate(s"CREATE PUBLICATION $publication FOR ALL TABLES")
+    slot
   end createReplicationSlot
+
+  def dropReplicationSlot(conn: PgConnection, slot: ReplicationSlotInfo): Unit =
+    val publication = config.getString("publication")
+    conn.getReplicationAPI.dropReplicationSlot(slot.getSlotName)
+    conn.execSQLUpdate(s"DROP PUBLICATION $publication")
+  end dropReplicationSlot
+
+  def createStream(conn: PgConnection): PGReplicationStream =
+    val replicationSlot = config.getString("replication-slot")
+    val publication     = config.getString("publication")
+
+    conn.getReplicationAPI
+      .replicationStream()
+      .logical()
+      .withSlotName(replicationSlot)
+      .withSlotOption("proto_version", 1)
+      .withSlotOption("publication_names", publication)
+      .start()
+  end createStream
 
 end Postgres
