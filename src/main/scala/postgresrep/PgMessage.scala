@@ -1,63 +1,73 @@
 package postgresrep
 
-sealed trait PgMessage[MT <: MessageType] {
-  def messageType: MT
+import scodec.codecs.*
+import scodec.*
 
-}
+sealed trait PgMessage
 
 object PgMessage {
 
-  case class Begin() extends PgMessage[MessageType.Begin.type] {
-    override val messageType: MessageType.Begin.type = MessageType.Begin
+  case class Begin() extends PgMessage
+  object Begin {
+    implicit val codec: Codec[Begin] = provide(Begin())
   }
 
-  case class Message() extends PgMessage[MessageType.Message.type] {
-    override val messageType: MessageType.Message.type = MessageType.Message
+  case class Message(content: String) extends PgMessage
+  object Message {
+    implicit val codec: Codec[Message] = utf8_32.as[Message]
   }
 
-  case class Commit() extends PgMessage[MessageType.Commit.type] {
-    override val messageType: MessageType.Commit.type = MessageType.Commit
+  case class Commit(commit: Long) extends PgMessage
+  object Commit {
+    implicit val codec: Codec[Commit] = int64.as[Commit]
   }
 
-  case class Origin() extends PgMessage[MessageType.Origin.type] {
-    override val messageType: MessageType.Origin.type = MessageType.Origin
+  case class Origin() extends PgMessage
+  object Origin {
+    implicit val codec: Codec[Origin] = provide(Origin())
   }
 
-  case class Relation() extends PgMessage[MessageType.Relation.type] {
-    override val messageType: MessageType.Relation.type = MessageType.Relation
+  case class Relation() extends PgMessage
+  object Relation {
+    implicit val codec: Codec[Relation] = provide(Relation())
   }
 
-  case class Type() extends PgMessage[MessageType.Type.type] {
-    override val messageType: MessageType.Type.type = MessageType.Type
+  case class Type() extends PgMessage
+  object Type {
+    implicit val codec: Codec[Type] = provide(Type())
   }
 
-  case class Insert() extends PgMessage[MessageType.Insert.type] {
-    override val messageType: MessageType.Insert.type = MessageType.Insert
+  case class Insert() extends PgMessage
+  object Insert {
+    implicit val codec: Codec[Insert] = provide(Insert())
   }
 
-  case class Update() extends PgMessage[MessageType.Update.type] {
-    override val messageType: MessageType.Update.type = MessageType.Update
+  case class Update() extends PgMessage
+  object Update {
+    implicit val codec: Codec[Update] = provide(Update())
   }
 
-  case class Delete() extends PgMessage[MessageType.Delete.type] {
-    override val messageType: MessageType.Delete.type = MessageType.Delete
+  case class Delete() extends PgMessage
+  object Delete {
+    implicit val codec: Codec[Delete] = provide(Delete())
   }
 
-  case class Truncate() extends PgMessage[MessageType.Truncate.type] {
-    override val messageType: MessageType.Truncate.type = MessageType.Truncate
+  case class Truncate() extends PgMessage
+  object Truncate {
+    implicit val codec: Codec[Truncate] = provide(Truncate())
   }
 
-  val codec = MessageType.codec.xmapc {
-    case MessageType.Begin    => Begin()
-    case MessageType.Message  => Message()
-    case MessageType.Commit   => Commit()
-    case MessageType.Origin   => Origin()
-    case MessageType.Relation => Relation()
-    case MessageType.Type     => Type()
-    case MessageType.Insert   => Insert()
-    case MessageType.Update   => Update()
-    case MessageType.Delete   => Delete()
-    case MessageType.Truncate => Truncate()
-  } { _.messageType }
+  implicit val codec: Codec[PgMessage] = discriminated[PgMessage]
+    .by(MessageType.codec)
+    .typecase(MessageType.Begin, Begin.codec)
+    .typecase(MessageType.Message, Message.codec)
+    .typecase(MessageType.Commit, Commit.codec)
+    .typecase(MessageType.Origin, Origin.codec)
+    .typecase(MessageType.Relation, Relation.codec)
+    .typecase(MessageType.Type, Type.codec)
+    .typecase(MessageType.Insert, Insert.codec)
+    .typecase(MessageType.Update, Update.codec)
+    .typecase(MessageType.Delete, Delete.codec)
+    .typecase(MessageType.Truncate, Truncate.codec)
 
 }
