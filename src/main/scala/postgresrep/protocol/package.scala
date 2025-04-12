@@ -1,12 +1,10 @@
 package postgresrep
 
+import scodec.*
 import scodec.codecs.*
-import scodec.*
-import scodec.*
 
 import java.time.*
-import java.time.temporal.{ChronoUnit, TemporalUnit}
-import java.util.concurrent.TimeUnit
+import java.time.temporal.ChronoUnit
 
 package object protocol {
   private val postgresEpoch = Instant.parse("2000-01-01T00:00:00Z")
