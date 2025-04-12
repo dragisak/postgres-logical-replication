@@ -54,7 +54,7 @@ object Main {
       } else {
         val bitVector = BitVector(msg)
 
-        MessageType.codec.decodeValue(bitVector) match {
+        PgMessage.codec.decodeValue(bitVector) match {
           case scodec.Attempt.Successful(decoded) => logger.info(decoded.toString)
           case scodec.Attempt.Failure(err)        => logger.error(err.toString)
         }
