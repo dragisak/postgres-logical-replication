@@ -8,17 +8,20 @@ import postgresrep.Main.getClass
 import postgresrep.Postgres
 import postgresrep.protocol.PgMessage
 import scodec.Attempt
-import scodec.bits.BitVector
+import scodec.bits.{BitVector, ByteVector}
+import fs2.interop.scodec.*
 
 object Main extends IOApp.Simple {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val stream: Stream[IO, BitVector] = makeStream()
+  private val stream = makeStream()
 
   override def run: IO[Unit] = {
+
     stream
-      .map(bitVector => PgMessage.codec.decode(bitVector))
+      .map(BitVector(_))
+      .map(PgMessage.codec.decode)
       .evalMap {
         case Attempt.Successful(decoded) => IO(logger.info(decoded.value.toString))
         case Attempt.Failure(err)        => IO(logger.error(err.messageWithContext))
