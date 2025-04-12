@@ -37,11 +37,7 @@ object PgMessage {
       namespace: String,
       relName: String,
       replicaIdentity: Char,
-      numberOfColumns: Int,
-      columnFlags: Int,
-      columnName: String,
-      oidOfColumnDataType: Int,
-      typeModifier: Int
+      columns: List[Column]
   ) extends PgMessage
   object Relation {
     implicit val codec: Codec[Relation] = (
@@ -50,11 +46,7 @@ object PgMessage {
         cstring ::
         cstring ::
         replicaIdentityCodec ::
-        int16 ::
-        int8 ::
-        cstring ::
-        oidCodec ::
-        int32
+        listOfN(int16, Column.codec)
     ).as[Relation]
   }
 
@@ -63,9 +55,13 @@ object PgMessage {
     implicit val codec: Codec[Type] = provide(Type())
   }
 
-  case class Insert(transactionId: Int, oid: Int, tupleData: TupleData) extends PgMessage
+  case class Insert(transactionId: Int, oid: Int, tuoles: List[TupleData]) extends PgMessage
   object Insert {
-    implicit val codec: Codec[Insert] = (transactionIdCodec :: oidCodec :: ignore(8) :: TupleData.codec).as[Insert]
+    implicit val codec: Codec[Insert] =
+      (transactionIdCodec ::
+        oidCodec ::
+        ignore(8) ::
+        listOfN(int16, TupleData.codec)).as[Insert]
   }
 
   case class Update() extends PgMessage
@@ -83,25 +79,35 @@ object PgMessage {
     implicit val codec: Codec[Truncate] = provide(Truncate())
   }
 
-  case class TupleData(
-      columnValues: List[TupleData.Value]
+  case class Column(
+      columnFlags: Int,
+      columnName: String,
+      oidOfColumnDataType: Int,
+      typeModifier: Int
   )
 
-  object TupleData {
-    sealed trait Value
-    case object NullValue                      extends Value
-    case object ToastedValue                   extends Value
-    case class TextValue(text: String)         extends Value
-    case class BinaryValue(bytes: Array[Byte]) extends Value
+  object Column {
+    implicit val codec: Codec[Column] = (int8 ::
+      cstring ::
+      oidCodec ::
+      int32).as[Column]
+  }
 
-    implicit val valueCodec: Codec[Value] = discriminated[Value]
+  sealed trait TupleData
+
+  object TupleData {
+    case object NullValue                      extends TupleData
+    case object ToastedValue                   extends TupleData
+    case class TextValue(text: String)         extends TupleData
+    case class BinaryValue(bytes: Array[Byte]) extends TupleData
+
+    implicit val codec: Codec[TupleData] = discriminated[TupleData]
       .by(byte)
       .typecase('n', ignore(16).xmap(_ => NullValue, _ => ()))
       .typecase('u', ignore(16).xmap(_ => NullValue, _ => ()))
       .typecase('t', textCodec.as[TextValue])
       .typecase('b', byteArrayCodec.as[BinaryValue])
 
-    val codec: Codec[TupleData] = listOfN(int16, valueCodec).as[TupleData]
   }
 
   implicit val codec: Codec[PgMessage] = discriminated[PgMessage]
