@@ -25,7 +25,7 @@ object Main {
     doRun.set(false)
   }
 
-  @main def provision() = {
+  @main def provision(): Unit = {
     val pg = new Postgres(config.getConfig("postgres"))
     Using.resource(pg.createConnection()) { conn =>
       pg.createReplicationSlot(conn)
