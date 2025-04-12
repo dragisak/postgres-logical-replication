@@ -3,6 +3,7 @@ package postgresrep
 import com.typesafe.config.ConfigFactory
 import org.postgresql.replication.PGReplicationStream
 import org.slf4j.LoggerFactory
+import postgresrep.protocol.PgMessage
 import scodec.Err
 import scodec.bits.BitVector
 

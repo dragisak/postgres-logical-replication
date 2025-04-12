@@ -1,15 +1,17 @@
-package postgresrep
+package postgresrep.protocol
 
-import scodec.codecs.*
 import scodec.*
+import scodec.codecs.*
+
+import java.time.Instant
 
 sealed trait PgMessage
 
 object PgMessage {
 
-  case class Begin() extends PgMessage
+  case class Begin(firstLSNOfTransaction: Long, timestamp: Instant) extends PgMessage
   object Begin {
-    implicit val codec: Codec[Begin] = provide(Begin())
+    implicit val codec: Codec[Begin] = (int64 :: instantCodec).as[Begin]
   }
 
   case class Message(content: String) extends PgMessage

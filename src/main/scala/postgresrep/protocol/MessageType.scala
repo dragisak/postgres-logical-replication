@@ -1,4 +1,4 @@
-package postgresrep
+package postgresrep.protocol
 
 sealed trait MessageType
 
