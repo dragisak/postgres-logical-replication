@@ -56,8 +56,12 @@ object Main {
         val bitVector = BitVector(msg)
 
         PgMessage.codec.decode(bitVector) match {
-          case scodec.Attempt.Successful(decoded) => logger.info(s"value=${decoded.value} reminder=${decoded.remainder.size}")
-          case scodec.Attempt.Failure(err)        => logger.error(err.toString)
+          case scodec.Attempt.Successful(decoded) =>
+            logger.info(decoded.value.toString)
+            if (decoded.remainder.nonEmpty) {
+              logger.warn(s"Remaining bytes: ${decoded.remainder.size}")
+            }
+          case scodec.Attempt.Failure(err) => logger.error(err.toString)
         }
 
         // feedback

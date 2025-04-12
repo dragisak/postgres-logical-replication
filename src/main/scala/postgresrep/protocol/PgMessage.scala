@@ -68,14 +68,38 @@ object PgMessage {
         listOfN(int16, TupleData.codec)).as[Insert]
   }
 
-  case class Update() extends PgMessage
+  case class Update(
+      oid: Int,
+      tuples: Option[(TupleType, List[TupleData])],
+      newTupleType: TupleType,
+      newTuples: List[TupleData]
+  ) extends PgMessage
   object Update {
-    implicit val codec: Codec[Update] = provide(Update())
+
+    private val isPresent: Codec[Boolean] = peek(byte).xmap(
+      b => b == 'K'.toByte || b == 'O'.toByte,                               // Map the byte to a Boolean
+      _ => throw new UnsupportedOperationException("Encoding not supported") // Encoding is not needed
+    )
+
+    private val pair: Codec[(TupleType, List[TupleData])] = TupleType.codec :: listOfN(int16, TupleData.codec)
+
+    implicit val codec: Codec[Update] =
+      (oidCodec ::
+        optional(isPresent, pair) ::
+        TupleType.codec ::
+        listOfN(int16, TupleData.codec)).as[Update]
   }
 
-  case class Delete() extends PgMessage
+  case class Delete(
+      oid: Int,
+      tupleType: TupleType,
+      tuples: List[TupleData]
+  ) extends PgMessage
   object Delete {
-    implicit val codec: Codec[Delete] = provide(Delete())
+    implicit val codec: Codec[Delete] =
+      (oidCodec ::
+        TupleType.codec ::
+        listOfN(int16, TupleData.codec)).as[Delete]
   }
 
   case class Truncate() extends PgMessage
