@@ -12,36 +12,44 @@ import scala.concurrent.duration.*
 import scala.util.Using
 import scala.util.Using.Releasable
 
-object Main extends App:
+object Main {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private val config = ConfigFactory.load()
 
-  private val pg = new Postgres(config.getConfig("postgres"))
+  private val doRun = new AtomicBoolean(true)
 
-  Using.resource(pg.createConnection()): conn =>
-    val replicationSlot = pg.createReplicationSlot(conn)
-    Using.resource(pg.createStream(conn)): stream =>
-      val (s, f) = start(stream)
-      f.onComplete(_ => pg.dropReplicationSlot(conn, replicationSlot))
-      sys.runtime.addShutdownHook(new Thread {
-        override def run(): Unit =
-          logger.info("Shutting down application...")
-          s.set(true)
-      })
-      Await.ready(f, Duration.Inf)
+  sys.addShutdownHook {
+    logger.info("Shutting down application...")
+    doRun.set(false)
+  }
 
-  private def start(stream: PGReplicationStream): (AtomicBoolean, Future[Unit]) =
-    val stop = new AtomicBoolean(false)
-    val f = Future {
-      while !stop.get() do
-        val msg = stream.readPending()
+  @main def provision() = {
+    val pg = new Postgres(config.getConfig("postgres"))
+    Using.resource(pg.createConnection()) { conn =>
+      pg.createReplicationSlot(conn)
+    }
+  }
 
-        if (msg == null) {
-          TimeUnit.MILLISECONDS.sleep(10L)
-        }
+  @main def execute(): Unit = {
+    val pg = new Postgres(config.getConfig("postgres"))
 
+    Using.resource(pg.createConnection()) { conn =>
+      Using.resource(pg.createStream(conn)) { stream =>
+        val f = start(stream)
+        Await.ready(f, Duration.Inf)
+      }
+    }
+  }
+
+  private def start(stream: PGReplicationStream): Future[Unit] = Future {
+    while (doRun.get()) {
+      val msg = stream.readPending()
+
+      if (msg == null) {
+        TimeUnit.MILLISECONDS.sleep(10L)
+      } else {
         val offset = msg.arrayOffset()
         val source = msg.array()
         val length = source.length - offset
@@ -50,10 +58,7 @@ object Main extends App:
         // feedback
         stream.setAppliedLSN(stream.getLastReceiveLSN)
         stream.setFlushedLSN(stream.getLastReceiveLSN)
-      end while
+      }
     }
-
-    (stop, f)
-  end start
-
-end Main
+  }
+}

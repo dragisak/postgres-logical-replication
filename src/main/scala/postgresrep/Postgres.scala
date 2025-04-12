@@ -10,10 +10,10 @@ import postgresrep.Main.getClass
 import java.sql.DriverManager
 import java.util.Properties
 
-class Postgres(config: Config):
+class Postgres(config: Config) {
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def createConnection(): PgConnection =
+  def createConnection(): PgConnection = {
 
     val url      = config.getString("url")
     val user     = config.getString("user")
@@ -30,10 +30,9 @@ class Postgres(config: Config):
 
     val con = DriverManager.getConnection(url, props)
     con.unwrap(classOf[PgConnection])
+  }
 
-  end createConnection
-
-  def createReplicationSlot(conn: PgConnection): ReplicationSlotInfo =
+  def createReplicationSlot(conn: PgConnection): ReplicationSlotInfo = {
     val replicationSlot = config.getString("replication-slot")
     val publication     = config.getString("publication")
     logger.info(s"Creating replication slot $replicationSlot")
@@ -46,17 +45,18 @@ class Postgres(config: Config):
     logger.info(s"Creating publication $publication")
     conn.execSQLUpdate(s"CREATE PUBLICATION $publication FOR ALL TABLES")
     slot
-  end createReplicationSlot
+  }
 
-  def dropReplicationSlot(conn: PgConnection, slot: ReplicationSlotInfo): Unit =
-    logger.info(s"Dropping replication slot ${slot.getSlotName}")
-    val publication = config.getString("publication")
-    conn.getReplicationAPI.dropReplicationSlot(slot.getSlotName)
+  def dropReplicationSlot(conn: PgConnection): Unit = {
+    val replicationSlot = config.getString("replication-slot")
+    val publication     = config.getString("publication")
     logger.info(s"Dropping publication $publication")
     conn.execSQLUpdate(s"DROP PUBLICATION $publication")
-  end dropReplicationSlot
+    logger.info(s"Dropping replication slot $replicationSlot")
+    conn.getReplicationAPI.dropReplicationSlot(replicationSlot)
+  }
 
-  def createStream(conn: PgConnection): PGReplicationStream =
+  def createStream(conn: PgConnection): PGReplicationStream = {
     val replicationSlot = config.getString("replication-slot")
     val publication     = config.getString("publication")
     logger.info(s"Creating stream")
@@ -68,6 +68,5 @@ class Postgres(config: Config):
       .withSlotOption("proto_version", 1)
       .withSlotOption("publication_names", publication)
       .start()
-  end createStream
-
-end Postgres
+  }
+}
