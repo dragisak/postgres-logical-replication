@@ -1,10 +1,8 @@
 package postgresrep.protocol
 
 import scodec.*
-import scodec.bits.ByteVector
 import scodec.codecs.*
 
-import java.nio.ByteBuffer
 import java.time.Instant
 
 sealed trait PgMessage
@@ -107,37 +105,6 @@ object PgMessage {
     implicit val codec: Codec[Truncate] = provide(Truncate())
   }
 
-  case class Column(
-      columnFlags: Int,
-      columnName: String,
-      oidOfColumnDataType: Int,
-      typeModifier: Int
-  )
-
-  object Column {
-    implicit val codec: Codec[Column] = (int8 ::
-      cstring ::
-      oidCodec ::
-      int32).as[Column]
-  }
-
-  sealed trait TupleData
-
-  object TupleData {
-    case object NullValue                      extends TupleData
-    case object ToastedValue                   extends TupleData
-    case class TextValue(text: String)         extends TupleData
-    case class BinaryValue(bytes: Array[Byte]) extends TupleData
-
-    implicit val codec: Codec[TupleData] = discriminated[TupleData]
-      .by(byte)
-      .typecase('n', provide(NullValue))
-      .typecase('u', provide(ToastedValue))
-      .typecase('t', textCodec.as[TextValue])
-      .typecase('b', byteArrayCodec.as[BinaryValue])
-
-  }
-
   implicit val codec: Codec[PgMessage] = discriminated[PgMessage]
     .by(MessageType.codec)
     .typecase(MessageType.Begin, Begin.codec)
@@ -150,17 +117,4 @@ object PgMessage {
     .typecase(MessageType.Update, Update.codec)
     .typecase(MessageType.Delete, Delete.codec)
     .typecase(MessageType.Truncate, Truncate.codec)
-}
-
-sealed trait TupleType
-object TupleType {
-  case object New extends TupleType
-  case object Old extends TupleType
-  case object Key extends TupleType
-
-  implicit val codec: Codec[TupleType] = discriminated[TupleType]
-    .by(byte)
-    .typecase('N', provide(New))
-    .typecase('O', provide(Old))
-    .typecase('K', provide(Key))
 }

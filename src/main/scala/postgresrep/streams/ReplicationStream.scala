@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 
 object ReplicationStream {
 
-  def createStream(stream: PGReplicationStream): Stream[IO, PgMessage[ByteBuffer]] = Stream
+  def createStream(stream: PGReplicationStream): Stream[IO, PgMessage] = Stream
     .repeatEval(IO.delay(stream.readPending()))
     .filter(_ != null)
     .map(b => PgMessage(b, stream.getLastReceiveLSN))

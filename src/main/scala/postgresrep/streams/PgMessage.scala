@@ -2,7 +2,9 @@ package postgresrep.streams
 
 import org.postgresql.replication.LogSequenceNumber
 
-case class PgMessage[T](
-    content: T,
+import java.nio.ByteBuffer
+
+case class PgMessage(
+    content: ByteBuffer,
     lastReceiveLSN: LogSequenceNumber
 )
