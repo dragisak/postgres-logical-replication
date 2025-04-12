@@ -1,14 +1,14 @@
-package postgresrep.streams
+package postgres.replication
 
 import cats.effect.{IO, IOApp}
 import cats.implicits.*
 import com.typesafe.config.ConfigFactory
 import fs2.*
 import org.slf4j.LoggerFactory
-import postgresrep.Postgres
-import postgresrep.protocol.PgMessage
-import scodec.{Attempt, DecodeResult}
+import postgres.replication.protocol.PgMessage
+import postgres.replication.streams.ReplicationStream
 import scodec.bits.BitVector
+import scodec.{Attempt, DecodeResult}
 
 object Main extends IOApp.Simple {
 

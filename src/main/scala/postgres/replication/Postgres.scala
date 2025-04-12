@@ -1,11 +1,10 @@
-package postgresrep
+package postgres.replication
 
 import com.typesafe.config.Config
 import org.postgresql.PGProperty
 import org.postgresql.jdbc.PgConnection
 import org.postgresql.replication.{PGReplicationStream, ReplicationSlotInfo}
 import org.slf4j.LoggerFactory
-import postgresrep.Main.getClass
 
 import java.sql.DriverManager
 import java.util.Properties

@@ -1,4 +1,4 @@
-package postgresrep.streams
+package postgres.replication.streams
 
 import org.postgresql.replication.LogSequenceNumber
 

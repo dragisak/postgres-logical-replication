@@ -1,4 +1,4 @@
-package postgresrep.protocol
+package postgres.replication.protocol
 
 sealed trait TupleType
 

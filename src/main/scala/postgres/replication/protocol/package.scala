@@ -1,4 +1,4 @@
-package postgresrep
+package postgres.replication
 
 import scodec.*
 import scodec.bits.ByteVector

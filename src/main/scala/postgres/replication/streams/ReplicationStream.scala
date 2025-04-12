@@ -1,4 +1,4 @@
-package postgresrep.streams
+package postgres.replication.streams
 
 import cats.effect.IO
 import fs2.*

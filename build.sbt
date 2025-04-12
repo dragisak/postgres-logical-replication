@@ -1,5 +1,5 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
+ThisBuild / name         := "postgres-replication-client"
+ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.6.4"
 
 val postgresVersion = "42.7.5"
@@ -18,7 +18,6 @@ lazy val root = (project in file("."))
       "com.typesafe"   % "config"          % configVersion,
       "org.slf4j"      % "slf4j-api"       % slf4jVersion,
       "ch.qos.logback" % "logback-classic" % logbackVersion,
-      "co.fs2"        %% "fs2-core"        % fs2Version,
-      "co.fs2"        %% "fs2-scodec"      % fs2Version
+      "co.fs2"        %% "fs2-core"        % fs2Version
     )
   )
