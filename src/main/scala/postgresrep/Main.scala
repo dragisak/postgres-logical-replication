@@ -3,6 +3,8 @@ package postgresrep
 import com.typesafe.config.ConfigFactory
 import org.postgresql.replication.PGReplicationStream
 import org.slf4j.LoggerFactory
+import scodec.Err
+import scodec.bits.BitVector
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -50,10 +52,12 @@ object Main {
       if (msg == null) {
         TimeUnit.MILLISECONDS.sleep(10L)
       } else {
-        val offset = msg.arrayOffset()
-        val source = msg.array()
-        val length = source.length - offset
-        logger.info(s"$source, $offset, $length")
+        val bitVector = BitVector(msg)
+
+        MessageType.codec.decodeValue(bitVector) match {
+          case scodec.Attempt.Successful(decoded) => logger.info(decoded.toString)
+          case scodec.Attempt.Failure(err)        => logger.error(err.toString)
+        }
 
         // feedback
         stream.setAppliedLSN(stream.getLastReceiveLSN)
