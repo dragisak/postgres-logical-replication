@@ -9,9 +9,9 @@ sealed trait PgMessage
 
 object PgMessage {
 
-  case class Begin(firstLSNOfTransaction: Long, timestamp: Instant) extends PgMessage
+  case class Begin(finalLSN: Long, timestamp: Instant, transactionId: Int) extends PgMessage
   object Begin {
-    implicit val codec: Codec[Begin] = (int64 :: instantCodec).as[Begin]
+    implicit val codec: Codec[Begin] = (lsnCodec :: instantCodec :: transactionIdCodec).as[Begin]
   }
 
   case class Message(content: String) extends PgMessage
@@ -19,9 +19,9 @@ object PgMessage {
     implicit val codec: Codec[Message] = utf8_32.as[Message]
   }
 
-  case class Commit(commit: Long) extends PgMessage
+  case class Commit(lsnOfTheCommit: Long, lsnOfTransaction: Long, timestamp: Instant) extends PgMessage
   object Commit {
-    implicit val codec: Codec[Commit] = int64.as[Commit]
+    implicit val codec: Codec[Commit] = (ignore(8) :: lsnCodec :: lsnCodec :: instantCodec).as[Commit]
   }
 
   case class Origin() extends PgMessage
@@ -29,9 +29,31 @@ object PgMessage {
     implicit val codec: Codec[Origin] = provide(Origin())
   }
 
-  case class Relation() extends PgMessage
+  case class Relation(
+      transactionId: Int,
+      oid: Int,
+      namespace: String,
+      relName: String,
+      replicaIdentity: Char,
+      numberOfColumns: Int,
+      columnFlags: Int,
+      columnName: String,
+      oidOfColumnDataType: Int,
+      typeModifier: Int
+  ) extends PgMessage
   object Relation {
-    implicit val codec: Codec[Relation] = provide(Relation())
+    implicit val codec: Codec[Relation] = (
+      transactionIdCodec ::
+        oidCodec ::
+        cstring ::
+        cstring ::
+        replicaIdentityCodec ::
+        int16 ::
+        int8 ::
+        cstring ::
+        oidCodec ::
+        int32
+    ).as[Relation]
   }
 
   case class Type() extends PgMessage
