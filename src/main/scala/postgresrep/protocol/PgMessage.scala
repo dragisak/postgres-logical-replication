@@ -55,12 +55,16 @@ object PgMessage {
     implicit val codec: Codec[Type] = provide(Type())
   }
 
-  case class Insert(transactionId: Int, oid: Int, tuoles: List[TupleData]) extends PgMessage
+  case class Insert(
+//      transactionId: Int, PG17
+      oid: Int,
+      tupleType: TupleType,
+      tuples: List[TupleData]
+  ) extends PgMessage
   object Insert {
     implicit val codec: Codec[Insert] =
-      (transactionIdCodec ::
-        oidCodec ::
-        ignore(8) ::
+      (oidCodec ::
+        TupleType.codec ::
         listOfN(int16, TupleData.codec)).as[Insert]
   }
 
@@ -103,8 +107,8 @@ object PgMessage {
 
     implicit val codec: Codec[TupleData] = discriminated[TupleData]
       .by(byte)
-      .typecase('n', ignore(16).xmap(_ => NullValue, _ => ()))
-      .typecase('u', ignore(16).xmap(_ => NullValue, _ => ()))
+      .typecase('n', provide(NullValue))
+      .typecase('u', provide(ToastedValue))
       .typecase('t', textCodec.as[TextValue])
       .typecase('b', byteArrayCodec.as[BinaryValue])
 
@@ -122,5 +126,17 @@ object PgMessage {
     .typecase(MessageType.Update, Update.codec)
     .typecase(MessageType.Delete, Delete.codec)
     .typecase(MessageType.Truncate, Truncate.codec)
+}
 
+sealed trait TupleType
+object TupleType {
+  case object New extends TupleType
+  case object Old extends TupleType
+  case object Key extends TupleType
+
+  implicit val codec: Codec[TupleType] = discriminated[TupleType]
+    .by(byte)
+    .typecase('N', provide(New))
+    .typecase('O', provide(Old))
+    .typecase('K', provide(Key))
 }
