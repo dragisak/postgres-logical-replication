@@ -18,17 +18,17 @@ object MessageType {
   case object Update            extends Protocol1Message
   case object Delete            extends Protocol1Message
   case object Truncate          extends Protocol1Message
-//  // Protocol 2
-//  sealed trait Protocol2Message extends MessageType
-//  case object StreamStart       extends Protocol2Message
-//  case object StreamStop        extends Protocol2Message
-//  case object StreamCommit      extends Protocol2Message
-//  case object StreamAbort       extends Protocol2Message
-//  case object BeginPrepare      extends Protocol2Message
-//  case object Prepare           extends Protocol2Message
-//  case object CommitPrepared    extends Protocol2Message
-//  case object RollbackPrepared  extends Protocol2Message
-//  case object StreamPrepare     extends Protocol2Message
+  // Protocol 2
+  sealed trait Protocol2Message extends MessageType
+  case object StreamStart       extends Protocol2Message
+  case object StreamStop        extends Protocol2Message
+  case object StreamCommit      extends Protocol2Message
+  case object StreamAbort       extends Protocol2Message
+  case object BeginPrepare      extends Protocol2Message
+  case object Prepare           extends Protocol2Message
+  case object CommitPrepared    extends Protocol2Message
+  case object RollbackPrepared  extends Protocol2Message
+  case object StreamPrepare     extends Protocol2Message
 
   // Codec for MessageType
   implicit val codec: Codec[MessageType] = discriminated[MessageType]
@@ -43,13 +43,13 @@ object MessageType {
     .typecase('U', provide(Update))
     .typecase('D', provide(Delete))
     .typecase('T', provide(Truncate))
-//    .typecase('S', provide(StreamStart))
-//    .typecase('E', provide(StreamStop))
-//    .typecase('c', provide(StreamCommit))
-//    .typecase('A', provide(StreamAbort))
-//    .typecase('b', provide(BeginPrepare))
-//    .typecase('P', provide(Prepare))
-//    .typecase('K', provide(CommitPrepared))
-//    .typecase('r', provide(RollbackPrepared))
-//    .typecase('p', provide(StreamPrepare))
+    .typecase('S', provide(StreamStart))
+    .typecase('E', provide(StreamStop))
+    .typecase('c', provide(StreamCommit))
+    .typecase('A', provide(StreamAbort))
+    .typecase('b', provide(BeginPrepare))
+    .typecase('P', provide(Prepare))
+    .typecase('K', provide(CommitPrepared))
+    .typecase('r', provide(RollbackPrepared))
+    .typecase('p', provide(StreamPrepare))
 }
