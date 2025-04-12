@@ -2,9 +2,8 @@ name: postgres-replication-client
 
 services:
   postgres:
-    image: bitnami/postgresql:latest
+    image: postgres:17
     environment:
-      POSTGRESQL_PASSWORD: "postgres"
-      POSTGRESQL_POSTGRES_PASSWORD: "postgres"
+      POSTGRES_PASSWORD: "postgres"
     ports:
       - 5432:5432
