@@ -1,6 +1,7 @@
 package postgresrep
 
 import scodec.*
+import scodec.bits.ByteVector
 import scodec.codecs.*
 
 import java.time.*
@@ -18,4 +19,11 @@ package object protocol {
   val lsnCodec: Codec[Long]             = int64
   val oidCodec: Codec[Int]              = int32
   val replicaIdentityCodec: Codec[Char] = int8.xmap(_.toChar, _.toByte)
+
+  val byteArrayCodec: Codec[Array[Byte]] = variableSizeBytes(int32, bytes).xmap(
+    _.toArray,    // Decode: Convert ByteVector to Array[Byte]
+    ByteVector(_) // Encode: Convert Array[Byte] to ByteVector
+  )
+
+  val textCodec: Codec[String] = variableSizeBytes(int32, utf8)
 }

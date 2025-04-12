@@ -1,8 +1,10 @@
 package postgresrep.protocol
 
 import scodec.*
+import scodec.bits.ByteVector
 import scodec.codecs.*
 
+import java.nio.ByteBuffer
 import java.time.Instant
 
 sealed trait PgMessage
@@ -61,9 +63,9 @@ object PgMessage {
     implicit val codec: Codec[Type] = provide(Type())
   }
 
-  case class Insert() extends PgMessage
+  case class Insert(transactionId: Int, oid: Int, tupleData: TupleData) extends PgMessage
   object Insert {
-    implicit val codec: Codec[Insert] = provide(Insert())
+    implicit val codec: Codec[Insert] = (transactionIdCodec :: oidCodec :: ignore(8) :: TupleData.codec).as[Insert]
   }
 
   case class Update() extends PgMessage
@@ -79,6 +81,27 @@ object PgMessage {
   case class Truncate() extends PgMessage
   object Truncate {
     implicit val codec: Codec[Truncate] = provide(Truncate())
+  }
+
+  case class TupleData(
+      columnValues: List[TupleData.Value]
+  )
+
+  object TupleData {
+    sealed trait Value
+    case object NullValue                      extends Value
+    case object ToastedValue                   extends Value
+    case class TextValue(text: String)         extends Value
+    case class BinaryValue(bytes: Array[Byte]) extends Value
+
+    implicit val valueCodec: Codec[Value] = discriminated[Value]
+      .by(byte)
+      .typecase('n', ignore(16).xmap(_ => NullValue, _ => ()))
+      .typecase('u', ignore(16).xmap(_ => NullValue, _ => ()))
+      .typecase('t', textCodec.as[TextValue])
+      .typecase('b', byteArrayCodec.as[BinaryValue])
+
+    val codec: Codec[TupleData] = listOfN(int16, valueCodec).as[TupleData]
   }
 
   implicit val codec: Codec[PgMessage] = discriminated[PgMessage]
