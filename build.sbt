@@ -17,6 +17,7 @@ lazy val root = (project in file("."))
       "org.scodec"    %% "scodec-core"     % scodecVersion,
       "com.typesafe"   % "config"          % configVersion,
       "org.slf4j"      % "slf4j-api"       % slf4jVersion,
+      "org.slf4j"      % "jul-to-slf4j"    % slf4jVersion,
       "ch.qos.logback" % "logback-classic" % logbackVersion,
       "co.fs2"        %% "fs2-core"        % fs2Version
     )

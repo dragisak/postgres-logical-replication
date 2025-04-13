@@ -7,10 +7,19 @@ import fs2.*
 import org.slf4j.LoggerFactory
 import postgres.replication.protocol.PgMessage
 import postgres.replication.streams.ReplicationStream
+import scodec.Attempt
 import scodec.bits.BitVector
-import scodec.{Attempt, DecodeResult}
+
+import java.util.logging.LogManager
 
 object Main extends IOApp.Simple {
+
+  try {
+    val is = getClass.getClassLoader.getResourceAsStream("logging.properties")
+    LogManager.getLogManager.readConfiguration(is)
+  } catch {
+    case e: Throwable => e.printStackTrace()
+  }
 
   private val logger = LoggerFactory.getLogger(getClass)
   private val stream = createStream()
