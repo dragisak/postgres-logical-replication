@@ -4,7 +4,7 @@ import scodec.Codec
 import scodec.codecs.*
 
 case class Column(
-    columnFlags: Column.ColumnFlag,
+    columnFlags: Option[Column.ColumnFlag],
     columnName: String,
     oidOfColumnDataType: Int,
     typeModifier: Int
@@ -14,12 +14,11 @@ object Column {
 
   sealed trait ColumnFlag
   object ColumnFlag {
-    case object NoFlag    extends ColumnFlag
     case object PartOfKey extends ColumnFlag
-    implicit val codec: Codec[ColumnFlag] = discriminated[ColumnFlag]
+    implicit val codec: Codec[Option[ColumnFlag]] = discriminated[Option[ColumnFlag]]
       .by(int8)
-      .typecase(0, provide(NoFlag))
-      .typecase(1, provide(PartOfKey))
+      .typecase(0, provide(None))
+      .typecase(1, provide(Some(PartOfKey)))
   }
 
   implicit val codec: Codec[Column] = (ColumnFlag.codec ::

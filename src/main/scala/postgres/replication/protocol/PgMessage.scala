@@ -15,7 +15,7 @@ object PgMessage {
   }
 
   case class Message(
-      flag: Message.Flag,
+      flag: Option[Message.Flag],
       lsn: Long,
       prefix: String,
       content: String
@@ -23,13 +23,12 @@ object PgMessage {
   object Message {
     sealed trait Flag
     object Flag {
-      case object NoFlag        extends Flag
       case object Transactional extends Flag
 
-      implicit val codec: Codec[Flag] = discriminated[Flag]
+      implicit val codec: Codec[Option[Flag]] = discriminated[Option[Flag]]
         .by(int8)
-        .typecase(0, provide(NoFlag))
-        .typecase(1, provide(Transactional))
+        .typecase(0, provide(None))
+        .typecase(1, provide(Some(Transactional)))
     }
 
     implicit val codec: Codec[Message] = (

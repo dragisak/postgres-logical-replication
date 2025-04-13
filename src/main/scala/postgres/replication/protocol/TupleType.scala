@@ -1,9 +1,9 @@
 package postgres.replication.protocol
 
-sealed trait TupleType
-
 import scodec.Codec
 import scodec.codecs.*
+
+sealed trait TupleType
 
 object TupleType {
   case object New extends TupleType
