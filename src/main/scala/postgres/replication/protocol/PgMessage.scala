@@ -24,9 +24,9 @@ object PgMessage {
     implicit val codec: Codec[Commit] = (ignore(8) :: lsnCodec :: lsnCodec :: instantCodec).as[Commit]
   }
 
-  case class Origin() extends PgMessage
+  case class Origin(lsn: Long, name: String) extends PgMessage
   object Origin {
-    implicit val codec: Codec[Origin] = provide(Origin())
+    implicit val codec: Codec[Origin] = (lsnCodec :: cstring).as[Origin]
   }
 
   case class Relation(
