@@ -40,6 +40,7 @@ object Main extends IOApp.Simple {
 
     for {
       conn     <- Stream.bracket(IO(pg.createConnection()))(c => IO(c.close()))
+      _        <- Stream.bracket(IO(pg.createReplicationSlot(conn)))(_ => IO(pg.dropReplicationSlot(conn)))
       pgStream <- Stream.bracket(IO(pg.createStream(conn)))(c => IO(c.close()))
       msg      <- ReplicationStream.createStream(pgStream)
       bitVector = BitVector(msg.content)

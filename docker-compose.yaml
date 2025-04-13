@@ -9,3 +9,4 @@ services:
       - 5432:5432
     volumes:
       - ${PWD}/init/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: postgres -c wal_level=logical
