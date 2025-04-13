@@ -65,6 +65,9 @@ class Postgres(config: Config) {
       .logical()
       .withSlotName(replicationSlot)
       .withSlotOption("proto_version", 4)
+      .withSlotOption("binary", false)
+      .withSlotOption("messages", true)
+      .withSlotOption("streaming", "parallel")
       .withSlotOption("publication_names", publication)
       .start()
   }
