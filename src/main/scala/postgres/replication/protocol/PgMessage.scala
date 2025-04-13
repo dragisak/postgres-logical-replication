@@ -100,9 +100,32 @@ object PgMessage {
         listOfN(int16, TupleData.codec)).as[Delete]
   }
 
-  case class Truncate() extends PgMessage
+  case class Truncate(
+      truncateType: Option[Truncate.TruncateType],
+      oids: List[Int]
+  ) extends PgMessage
   object Truncate {
-    implicit val codec: Codec[Truncate] = provide(Truncate())
+    sealed trait TruncateType
+    object TruncateType {
+      case object Cascade         extends TruncateType
+      case object RestartIdentity extends TruncateType
+
+      implicit val codec: Codec[Option[TruncateType]] = discriminated[Option[TruncateType]]
+        .by(int8)
+        .typecase(0, provide(None))
+        .typecase(1, provide(Some(Cascade)))
+        .typecase(2, provide(Some(RestartIdentity)))
+
+    }
+
+    implicit val codec: Codec[Truncate] =
+      int32
+        .consume(n =>
+          TruncateType.codec ::
+            listOfN(provide(n), oidCodec)
+        )(_._2.size)
+        .as[Truncate]
+
   }
 
   implicit val codec: Codec[PgMessage] = discriminated[PgMessage]
