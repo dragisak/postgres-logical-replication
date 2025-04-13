@@ -64,7 +64,7 @@ class Postgres(config: Config) {
       .replicationStream()
       .logical()
       .withSlotName(replicationSlot)
-      .withSlotOption("proto_version", 1)
+      .withSlotOption("proto_version", 4)
       .withSlotOption("publication_names", publication)
       .start()
   }
