@@ -14,9 +14,30 @@ object PgMessage {
     implicit val codec: Codec[Begin] = (lsnCodec :: instantCodec :: transactionIdCodec).as[Begin]
   }
 
-  case class Message(content: String) extends PgMessage
+  case class Message(
+      flag: Message.Flag,
+      lsn: Long,
+      prefix: String,
+      content: String
+  ) extends PgMessage
   object Message {
-    implicit val codec: Codec[Message] = utf8_32.as[Message]
+    sealed trait Flag
+    object Flag {
+      case object NoFlag        extends Flag
+      case object Transactional extends Flag
+
+      implicit val codec: Codec[Flag] = discriminated[Flag]
+        .by(int8)
+        .typecase(0, provide(NoFlag))
+        .typecase(1, provide(Transactional))
+    }
+
+    implicit val codec: Codec[Message] = (
+      Flag.codec ::
+        lsnCodec ::
+        cstring ::
+        variableSizeBytes(int32, utf8)
+    ).as[Message]
   }
 
   case class Commit(lsnOfTheCommit: Long, lsnOfTransaction: Long, timestamp: Instant) extends PgMessage
