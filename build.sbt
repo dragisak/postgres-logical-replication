@@ -11,7 +11,8 @@ val fs2Version      = "3.16.0"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "postgres-replication-client",
+    name                 := "postgres-replication-client",
+    Compile / run / fork := true,
     libraryDependencies ++= List(
       "org.postgresql" % "postgresql"      % postgresVersion,
       "org.scodec"    %% "scodec-core"     % scodecVersion,
