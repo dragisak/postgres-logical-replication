@@ -1,13 +1,13 @@
 ThisBuild / organization := "com.dragishak"
 ThisBuild / version      := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "3.6.4"
+ThisBuild / scalaVersion := "3.10.1"
 
 val postgresVersion = "42.7.5"
-val scodecVersion   = "2.3.2"
-val configVersion   = "1.4.3"
-val slf4jVersion    = "2.0.17"
-val logbackVersion  = "1.5.18"
-val fs2Version      = "3.12.0"
+val scodecVersion   = "2.3.3"
+val configVersion   = "1.4.10"
+val slf4jVersion    = "2.0.20"
+val logbackVersion  = "1.6.8"
+val fs2Version      = "3.16.0"
 
 lazy val root = (project in file("."))
   .settings(

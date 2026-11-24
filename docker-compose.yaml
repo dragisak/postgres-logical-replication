@@ -2,7 +2,7 @@ name: postgres-replication-client
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:19
     environment:
       POSTGRES_PASSWORD: "postgres"
     ports:
