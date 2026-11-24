@@ -12,3 +12,5 @@ target/
 .bsp/
 .bloop
 .sf
+.metals
+metals.sbt
