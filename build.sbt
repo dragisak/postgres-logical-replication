@@ -2,7 +2,7 @@ ThisBuild / organization := "com.dragishak"
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.10.1"
 
-val postgresVersion = "42.7.5"
+val postgresVersion = "42.7.15"
 val scodecVersion   = "2.3.3"
 val configVersion   = "1.4.10"
 val slf4jVersion    = "2.0.20"
